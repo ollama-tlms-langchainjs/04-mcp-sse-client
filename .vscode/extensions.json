@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+      "ms-azuretools.vscode-docker",
+      "pkief.material-icon-theme",
+      "pkief.material-product-icons",
+      "aaron-bond.better-comments",
+      "equinusocio.vsc-material-theme",
+      "hediet.vscode-drawio",
+    ]
+}
