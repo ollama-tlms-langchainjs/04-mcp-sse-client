@@ -42,25 +42,29 @@ async function fetchTools() {
   }
 }
 
-// Connect to the SSE server and get tools
 async function startClient() {
-  console.log("🔄 Connecting to MCP SSE Server...");
+  // Connect to the SSE server
   await mcpClient.connect(transport);
-  console.log("✅ Connected to MCP SSE Server!");
 
-  // Fetch tools
+  // Read Resources
+  const llmInstruction = await mcpClient.readResource({
+    uri: "llm://instructions",
+  });
+  // Get the Resource Content:
+  let systemInstructions = llmInstruction.contents[0].text;
+
+  // Get a prompt by name
+  const prompt = await mcpClient.getPrompt({
+    name: "roll-dice",
+    arguments: { numDice: "3", numFaces: "12" }, // always use strings for arguments
+  });
+  let userInstructions = prompt.messages[0].content.text;
+  let role = prompt.messages[0].role;
+
+  // Fetch MCP tools
   let mcpTools = await fetchTools();
 
-  console.log("=====================================");
-  console.log("✅ Available Tools:");
-
-  mcpTools.tools.forEach((tool) => {
-    console.log("🔨 tool:", tool.name);
-    console.log("🔨 schema:", tool.inputSchema);
-  });
-  console.log("=====================================");
-
-  // Transform MCP Tools to Dynamic Tools (Langchain Tools)
+  // Transform MCP Tools list to a tools list understandable by the LLM
   let langchainTools = mcpTools.tools.map((mcpTool) => {
     return tool(null, {
       name: mcpTool.name,
@@ -69,45 +73,20 @@ async function startClient() {
     });
   });
 
-  // Resources
-  const resources = await mcpClient.listResources();
-  console.log("📜 Available Resources:", resources);
-
-  const llmInstruction = await mcpClient.readResource({
-    uri: "llm://instructions",
-  });
-  // Resource Content:
-  let systemInstructions = llmInstruction.contents[0].text;
-  console.log("📝 System Instructions:", systemInstructions);
-  console.log("=====================================");
-
-  // Prompts
-  const prompts = await mcpClient.listPrompts();
-  console.log("📜 Available Prompts:", prompts);
-
-  const prompt = await mcpClient.getPrompt({
-    name: "roll-dice",
-    arguments: { numDice: "3", numFaces: "12" }, // always use strings for arguments
-  });
-  let userInstructions = prompt.messages[0].content.text;
-  console.log("📝 User Instructions:", userInstructions);
-  console.log("=====================================");
-
-  // Bind the tools to the LLM instance
+  // Bind the dynamic tools to the LLM instance
   const llmWithTools = llm.bindTools(langchainTools);
 
+  // Define the messages to send to the LLM
   let messages = [
     ["system", systemInstructions],
-    ["user", userInstructions],
+    [role, userInstructions],
   ];
 
   // Invoke the LLM with the messages
   let llmOutput = await llmWithTools.invoke(messages);
 
   // Output the LLM response
-  console.log("📦 LLM (response )Output:");
-  console.log("llmOutput:", llmOutput.tool_calls[0]);
-  console.log("=====================================");
+  console.log("📦 LLM Output:", llmOutput.tool_calls[0]);
 
   // Call the tool via MCP with the LLM response
   let result = await mcpClient.callTool({
@@ -115,11 +94,7 @@ async function startClient() {
     arguments: llmOutput.tool_calls[0].args,
   });
 
-  console.log("🟩 arguments", JSON.stringify({
-    name: llmOutput.tool_calls[0].name,
-    arguments: llmOutput.tool_calls[0].args,
-  }, null, 2));
-
+  // Output the server response
   console.log("✅ Server Response:", result);
 
   // Exit the client
@@ -127,16 +102,6 @@ async function startClient() {
   mcpClient.close();
   console.log("🔌 Disconnected!");
 }
-
-// Handle incoming messages
-transport.onmessage = (message) => {
-  console.log("📩 Incoming Message:", message);
-};
-
-// Handle errors
-transport.onerror = (error) => {
-  console.error("🚨 SSE Client Error:", error);
-};
 
 // Start the client
 startClient();

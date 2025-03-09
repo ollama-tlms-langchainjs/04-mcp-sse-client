@@ -32,9 +32,11 @@ async function startClient() {
     name: "roll-dice",
     arguments: { numDice: "3", numFaces: "12" }, // always use strings for arguments
   });
-  let userInstructions = prompt.messages[0].content.text;
-  console.log("📝 User Instructions:", userInstructions);
 
+  console.log("🎲 Prompt:", JSON.stringify(prompt, null, 2));
+  let role = prompt.messages[0].role;
+  let userInstructions = prompt.messages[0].content.text;
+  console.log("👤 Role:",role , "📝 Instructions:", userInstructions);
 
   // Exit the client
   mcpClient.close();
