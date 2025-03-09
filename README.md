@@ -6,4 +6,4 @@ I need to add the documentation
 
 ## Resources
 
-blab blab bla 😂
+blab blab bla 🤔
