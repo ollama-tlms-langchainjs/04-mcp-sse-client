@@ -10,4 +10,3 @@ prompts:
         - text: 🎲 Rolling ${numDice} dice(s) with ${numFaces} faces
           role: user
 
-
