@@ -22,8 +22,6 @@ const llmResult = new ChatOllama({
   repeatPenalty: 2.2
 });
 
-
-
 // Create the MCP Client
 const mcpClient = new Client(
   {
