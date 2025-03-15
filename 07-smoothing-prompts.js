@@ -43,7 +43,9 @@ async function startClient() {
   await mcpClient.connect(transport);
 
   let systemMCPInstructions = `You are a useful AI agent. 
-  Your job is to understand the user prompt ans decide if you need to use a tool to run external commands.
+  Your job is:
+  1. To understand the user prompt.
+  2. Then, to decide if you need to use a tool to run external commands.
   Ignore all things not related to the usage of a tool.
   `
 
@@ -52,8 +54,11 @@ async function startClient() {
   `
 
   let systemChatInstructions = `You are a useful AI agent.
-  Your job is to answer the user prompt. If you detect that the user prompt is related to a tool, 
-  ignore this part and focus on the other parts
+  Your job is:
+  1. To understand the user prompt.
+  2. If you detect that a part of the user prompt is related to a tool
+    - Then: ignore this part and focus on the other parts
+    - And: answer the last part of user prompt.  
   `
 
   const rollDiceSchema = z.object({
